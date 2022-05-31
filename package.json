@@ -4,7 +4,8 @@
   "description": "",
   "main": "main.js",
   "scripts": {
-    "build": "npx rollup -c --environment NODE_ENV:development -i main.js -o public/app.js -w"
+    "start": "npx rollup -c --environment NODE_ENV:development -i main.js -o public/app.js -w",
+    "build": "npx rollup -c --environment NODE_ENV:development -i main.js -o public/app.js"
   },
   "repository": {
     "type": "git",
