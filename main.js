@@ -1,6 +1,11 @@
-import { LitElement, html } from 'lit';
+import { LitElement, html, css } from 'lit';
+import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { Router } from '@lit-labs/router';
 import { proxy, snapshot, subscribe } from 'valtio/vanilla';
+import { Editor } from '@tiptap/core';
+import video from './video';
+import StarterKit from '@tiptap/starter-kit';
+
 import { NinjaKeys } from 'ninja-keys';
 
 const store = proxy({
@@ -17,17 +22,73 @@ const updateUser = (id, name) => {
   if (user) user.name = name;
 };
 
-class Home extends LitElement {
+class Mirror extends LitElement {
+  static styles = css`
+    .container {
+      display:flex;
+      gap: 20px;
+      justify-content: space-between;
+    }
+    .container div {
+      width:40vw;
+    }
+    .ProseMirror {
+      white-space: pre-wrap;
+      outline: solid 5px hotpink;
+    }
+  `;
   static get properties() {
-    return {};
+    return {
+      _value: { type: String },
+    };
   }
   constructor() {
     super();
+
+    this._value = '';
   }
+
+  firstUpdated() {
+    new Editor({
+      element: this.renderRoot.querySelector('.element'),
+      extensions: [StarterKit, video],
+      onUpdate: ({ editor }) => {
+        this._value = editor.getHTML();
+      },
+      content:
+        '<p>Type here ...</p><div data-video=""><iframe classname="video-container" width="640" height="360" frameborder="0" allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;" src="https://www.youtube.com/embed/8sEXCfX0rdk?autoplay=true"></iframe></div>',
+    });
+  }
+
+  render() {
+    return html`
+      <div class="container">
+        <div class="element"></div>
+        <div>${unsafeHTML(this._value)}</div>
+      </div>
+    `;
+  }
+}
+
+customElements.define('mirror-index', Mirror);
+
+class Home extends LitElement {
+  static get properties() {
+    return {
+      _value: { state: true },
+    };
+  }
+  constructor() {
+    super();
+
+    this._value = '';
+  }
+
   render() {
     return html`<h1>Hello</h1>
       <a href="/">Home</a>
-      <a href="/users">Users</a>`;
+      <a href="/users">Users</a>
+      <a href="/mirror">Mirror</a>`;
   }
 }
 
@@ -171,6 +232,10 @@ class App extends LitElement {
       enter: (params) => {
         this.user = this.users.find((user) => user.id == params.id);
       },
+    },
+    {
+      path: '/mirror',
+      render: () => html`<mirror-index .value=${''}></mirror-index>`,
     },
   ]);
 
